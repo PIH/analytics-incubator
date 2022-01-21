@@ -9,8 +9,14 @@
     "database.password": "root",
     "database.server.id": "100001",
     "database.server.name": "openmrs-humci",
-    "database.include.list": "openmrs",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
-    "database.history.kafka.topic": "schema-changes.openmrs"
+    "database.history.kafka.topic": "schema-changes.openmrs",
+    "decimal.handling.mode": "double",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "database.include.list": "openmrs",
+    "table.include.list": "openmrs.person"
   }
 }
