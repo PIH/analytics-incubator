@@ -68,8 +68,20 @@ In most of the Flink CDC and Kafka SQL demonstrations, ElasticSearch and Kibana 
 
 [Druid](https://druid.apache.org/technology)
 
-DATABASES:
-
 **Cassandra**
 
 [Cassandra](https://cassandra.apache.org/_/index.html)
+
+## Visualization tools
+
+**Kibana**
+
+[Kibana](https://www.elastic.co/kibana/)
+
+**Apache SuperSet**
+
+[Apache SuperSet](https://superset.apache.org/)
+
+**Power BI**
+
+The status quo
