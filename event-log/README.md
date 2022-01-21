@@ -111,3 +111,49 @@ All events are processed by a single Task (by design) and are published to Topic
 * [Debezium Documentation](https://debezium.io/documentation/reference/stable/index.html)
 * [Debezium Tutorial](https://debezium.io/documentation/reference/stable/tutorial.html)
 * [Ampath OpenMRS ELT project](https://github.com/kimaina/openmrs-elt/tree/master/cdc)
+
+## Further Considerations
+
+* [Open Source Confluent Platform](https://www.confluent.io/product/confluent-platform/)
+
+## Switching to Avro
+
+Update openmrs-connector.json:
+```
+    "key.converter": "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": "http://schemaregistry:8085",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schemaregistry:8085",
+    "internal.key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "internal.value.converter": "org.apache.kafka.connect.json.JsonConverter",
+```
+
+Add schemaregistry to docker-compose.yml:
+
+```yaml
+  # The schema registry is required in order to use Avro as the serialization format for events by Debezium
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:7.0.1
+    container_name: "schema-registry"
+    ports:
+    - "8085:8085"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
+    depends_on:
+    - "zookeeper"
+    - "kafka"
+```
+
+Add to kowl in docker-compose.yml:
+
+```yaml
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_SCHEMAREGISTRY_ENABLED: "true"
+      KAFKA_SCHEMAREGISTRY_URLS: "http://schemaregistry:8085"
+    depends_on:
+      - "kafka"
+      - "schemaregistry"
+```
