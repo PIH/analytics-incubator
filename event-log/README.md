@@ -253,3 +253,27 @@ This is needed in order for Kowl to be able to access the Avro schema in the reg
       - "kafka"
       - "schemaregistry"
 ```
+
+**Update downstream jobs**
+
+Replace json with avro in pom dependencies and add confluent repository to repositories:
+
+```
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-avro-confluent-registry</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+        ...
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+```
+
+Update Kafka connector configurations for Table API like follows:
+
+```
+    "    'format' = 'debezium-avro-confluent',\n" +
+    "    'debezium-avro-confluent.schema-registry.url' = 'http://localhost:8085',\n" +
+```

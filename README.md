@@ -2,7 +2,7 @@
 
 This repository represents a series of spikes and experiments with a variety of software platforms that are used for data integration, ETL, analytics and reporting.
 
-Each of the directories included here encapsulates a docker-compose setup that contains related services to achieve a particular function.  In order to connect the containers between these together, all of them will share a common network and will be able to communicate with each other using the container names and ports defined. The common docker network these will share is called "openmrs-analytics-network", and should be created as follows:
+Many of the directories included here encapsulate a docker-compose setup that contains related services to achieve a particular function.  In order to connect the containers between these together, all of them will share a common network and will be able to communicate with each other using the container names and ports defined. The common docker network these will share is called "openmrs-analytics-network", and should be created as follows:
 
 ```shell
 docker network create openmrs-analytics-network
@@ -12,45 +12,64 @@ docker network create openmrs-analytics-network
 
 For these examples, we are going to focus on Change Data Capture (CDC), using Debezium.  There are a few described ways to do this.  At a high-level, these approaches are as follows:
 
-1. Configuring Kafka as a sink for Debezium events, and then processing events from Kafka using Flink or other tools.
-2. Configuring a Flink as a direct consumer of MySQL binlog using a Flink CDC connector for MySQL that embeds Debezium
-3. Rolling our own custom application that embeds Debezium
+**Using Kafka**
 
-These approaches are described in the below sections.
+This approach first configured Kafka as a sink for Debezium events, and then processes events from Kafka using Flink or other tools.  This is demonstrated by following the [event-log](event-log) and [flink-jobs](flink-jobs) READMEs.
 
-FLINK CDC WITHOUT KAFKA:
+**Using Flink without Kafka**
+
+The idea here is that a Flink cluster can act as a direct consumer of the MySQL binlog using a Flink CDC connector that embeds Debezium.   This requires further investigation.  Additional resources here:
 
 * [Flink CDC without Kafka - Github](https://github.com/ververica/flink-cdc-connectors)
 * [Flink CDC without Kafka - Tutorial](https://ververica.github.io/flink-cdc-connectors/master/content/quickstart/mysql-postgres-tutorial.html#)
 
+**Rolling our own custom application**
+
+The idea here would be to build a custom application that could embed Debezium and other libraries.  This would require further investigation to pursue if desired.
+
+## Getting data into an Analytics Data Store
+
+The following approachs and tools should be evaluated:
+
+**ElasticSearch with Kibana**
+
+In most of the Flink CDC and Kafka SQL demonstrations, ElasticSearch and Kibana used in Docker containers as a sink to store and visualize the data in the pipeline.  Some examples below which might be useful when these are built out:
+
+* https://github.com/ververica/flink-sql-CDC
+* https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html
+
+```
+    elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+      environment:
+        - cluster.name=docker-cluster
+        - bootstrap.memory_lock=true
+        - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        - discovery.type=single-node
+      ports:
+        - "9200:9200"
+        - "9300:9300"
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+        nofile:
+          soft: 65536
+          hard: 65536
+    kibana:
+      image: docker.elastic.co/kibana/kibana:7.6.0
+      ports:
+      - "5601:5601"
+      
+      
+```
+
+**Druid**
+
+[Druid](https://druid.apache.org/technology)
+
 DATABASES:
 
-* [Druid](https://druid.apache.org/technology)
-* [Cassandra](https://cassandra.apache.org/_/index.html)
+**Cassandra**
 
-
-TODO:
-
-### Enable Avro Support
-
-* Replace json with avro in pom dependencies and add confluent repository to repositories:
-
-```
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-avro-confluent-registry</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-        ...
-        <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
-        </repository>
-```
-
-* Update Kafka connector configurations for Table API like follows:
-
-```
-    "    'format' = 'debezium-avro-confluent',\n" +
-    "    'debezium-avro-confluent.schema-registry.url' = 'http://localhost:8085',\n" +
-```
+[Cassandra](https://cassandra.apache.org/_/index.html)

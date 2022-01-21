@@ -29,6 +29,10 @@ The result of this should be a `target` directory that contains a large number o
 docker-compose up -d
 ```
 
+**Verify Running**
+
+You should be able to view the web interface for this Flink cluster at:  [http://localhost:8181](http://localhost:8181).
+
 **Try out the SQL Client**
 
 Start up the SQL client by executing the following command:
