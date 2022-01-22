@@ -38,32 +38,6 @@ In most of the Flink CDC and Kafka SQL demonstrations, ElasticSearch and Kibana 
 * https://github.com/ververica/flink-sql-CDC
 * https://flink.apache.org/2020/07/28/flink-sql-demo-building-e2e-streaming-application.html
 
-```
-    elasticsearch:
-      image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
-      environment:
-        - cluster.name=docker-cluster
-        - bootstrap.memory_lock=true
-        - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-        - discovery.type=single-node
-      ports:
-        - "9200:9200"
-        - "9300:9300"
-      ulimits:
-        memlock:
-          soft: -1
-          hard: -1
-        nofile:
-          soft: 65536
-          hard: 65536
-    kibana:
-      image: docker.elastic.co/kibana/kibana:7.6.0
-      ports:
-      - "5601:5601"
-      
-      
-```
-
 **Druid**
 
 [Druid](https://druid.apache.org/technology)

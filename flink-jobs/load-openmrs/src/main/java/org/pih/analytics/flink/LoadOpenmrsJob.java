@@ -5,7 +5,7 @@ import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
 
 /**
- * Main class for the PETL application that starts up the Spring Boot Application
+ * Load OpenMRS Data
  */
 public class LoadOpenmrsJob {
 
@@ -47,5 +47,27 @@ public class LoadOpenmrsJob {
 
         TableResult result = tEnv.executeSql("select * from person");
         result.print();
+
+        tEnv.executeSql("" +
+                "CREATE TABLE es_person (\n" +
+                "  person_id INT PRIMARY KEY NOT ENFORCED,\n" +
+                "  uuid STRING,\n" +
+                "  gender STRING,\n" +
+                "  birthdate BIGINT\n" +
+                ") WITH (\n" +
+                "  'connector' = 'elasticsearch-7',\n" +
+                "  'hosts' = 'http://localhost:9200',\n" +
+                "  'index' = 'es_person_index'\n" +
+                ")"
+        );
+
+        tEnv.executeSql("" +
+                "INSERT INTO es_person\n" +
+                "SELECT p.person_id,\n" +
+                "       p.uuid,\n" +
+                "       p.gender,\n" +
+                "       p.birthdate\n" +
+                "FROM person p\n"
+        );
     }
 }
