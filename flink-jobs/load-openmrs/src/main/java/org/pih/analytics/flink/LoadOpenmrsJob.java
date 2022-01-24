@@ -22,7 +22,7 @@ public class LoadOpenmrsJob {
         TableEnvironment tEnv = TableEnvironment.create(settings);
 
         tEnv.executeSql("" +
-                "CREATE TABLE person (\n" +
+                "CREATE TABLE person_changes (\n" +
                 "  person_id INT,\n" +
                 "  uuid STRING, \n" +
                 "  gender STRING,\n" +
@@ -45,11 +45,11 @@ public class LoadOpenmrsJob {
                 "    'scan.startup.mode' = 'earliest-offset'\n" +
                 ")");
 
-        TableResult result = tEnv.executeSql("select * from person");
-        result.print();
+        //TableResult result = tEnv.executeSql("select * from person_changes");
+        //result.print();
 
         tEnv.executeSql("" +
-                "CREATE TABLE es_person (\n" +
+                "CREATE TABLE person_index(\n" +
                 "  person_id INT PRIMARY KEY NOT ENFORCED,\n" +
                 "  uuid STRING,\n" +
                 "  gender STRING,\n" +
@@ -57,17 +57,17 @@ public class LoadOpenmrsJob {
                 ") WITH (\n" +
                 "  'connector' = 'elasticsearch-7',\n" +
                 "  'hosts' = 'http://localhost:9200',\n" +
-                "  'index' = 'es_person_index'\n" +
+                "  'index' = 'person_index'\n" +
                 ")"
         );
 
         tEnv.executeSql("" +
-                "INSERT INTO es_person\n" +
+                "INSERT INTO person_index\n" +
                 "SELECT p.person_id,\n" +
                 "       p.uuid,\n" +
                 "       p.gender,\n" +
                 "       p.birthdate\n" +
-                "FROM person p\n"
+                "FROM person_changes p\n"
         );
     }
 }
