@@ -31,7 +31,7 @@ docker-compose up -d
 
 **Verify Running**
 
-You should be able to view the web interface for this Flink cluster at:  [http://localhost:8181](http://localhost:8181).
+You should be able to view the web interface for this Flink cluster at:  [http://localhost:8081](http://localhost:8101).
 
 **Try out the SQL Client**
 
@@ -46,6 +46,7 @@ At the `Flink SQL>` prompt, start by creating a `person` table schema and connec
 ```
 CREATE TABLE person (
   person_id INT,
+  uuid STRING,
   gender STRING,
   birthdate BIGINT,
   birthdate_estimated BOOLEAN,

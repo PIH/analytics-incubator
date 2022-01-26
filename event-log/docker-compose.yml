@@ -18,9 +18,9 @@ services:
   zookeeper:
     image: debezium/zookeeper:1.8
     container_name: "zookeeper"
-    volumes:
-      - "./zookeeper/data:/zookeeper/data"
-      - "./zookeeper/txns:/zookeeper/txns"
+    #volumes:
+    #  - "./zookeeper/data:/zookeeper/data"
+    #  - "./zookeeper/txns:/zookeeper/txns"
     ports:
       - "2181:2181"
       - "2888:2888"
@@ -29,8 +29,8 @@ services:
   kafka:
     image: debezium/kafka:1.8
     container_name: "kafka"
-    volumes:
-      - "./kafka/data:/kafka/data"
+    #volumes:
+    #  - "./kafka/data:/kafka/data"
     ports:
       - "9092:9092"
     depends_on:
