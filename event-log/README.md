@@ -6,9 +6,10 @@ This describes a setup process for setting up an event log for OpenMRS.  The hea
 
 The primary source of events feeding the Kafka instance is the OpenMRS MySQL instance.  This is accomplished through the [Debezium](https://debezium.io/documentation/reference/stable/index.html) platform.  Debezium is a change-data-capture (CDC) library that consumes the MySQL bin log and produces a stream of database change events, including all inserts, updates, and deletes, as well as schema changes.  Debezium is connected to Kafka via a Debezium connector library that is added to the [Kafka Connect](https://kafka.apache.org/documentation/#connect) service and configured to publish event streams of [specific tables within the OpenMRS database](openmrs-connector.json) to individual Kafka topics.
 
+This depends on the [mysql](../mysql) container that has row-level bin logging enabled.  MySQL 8 enables bin logging by default.
+
 There are several services and components to this platform that can be seen in the provided [docker-compose.yml](docker-compose.yml) file.  These are as follows:
 
-* MySQL.      This should be a MySQL instance with row-level bin logging enabled.  MySQL 8 enables bin logging by default.
 * Kafka.      The Event Streaming platform
 * Zookeeper.  Used by Kafka for management of configuration, naming, and other services across distributed cluster.  May be eliminated in the near future.  See [Zookeeper Docs](https://zookeeper.apache.org/)
 * Connect.    The Kafka Connect service serves to connect various data sources and sinks to Kafka.  The version used here comes pre-configured with a Debezium connector.
@@ -33,7 +34,7 @@ Much of the setup and configuration seen here followed these resource guides:
 
 * Create a new directory to use for this project.  All further commands and instructions are relative to this folder.
 * Copy or create symbolic links between [docker-compose.yml](docker-compose.yml) and [openmrs-connector.json](openmrs-connector.json) to this folder
-* Setup or identify existing MySQL database with row-level bin logging enabled.  See [openmrs-mysql](../openmrs-mysql) for examples.
+* Setup or identify existing MySQL database with row-level bin logging enabled.  See [openmrs-mysql](../mysql) for examples.
 * Modify the docker-compose configuration as needed to reflect specifics of the MySQL instance
 
 ### Saving data across restarts
