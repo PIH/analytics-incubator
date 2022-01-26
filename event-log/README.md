@@ -89,11 +89,7 @@ The above connector registration only needs to be done at first installation, if
 
 ## Monitoring the Event Log
 
-You can fire up one of the provided Kafka UI services provided in the Docker image to view the event log.
-
-* Kowl:  `http://localhost:8282/`
-* Kafdrop:  `http://localhost:9191/`
-
+You can fire up [Kowl](http://localhost:8282/), which is a web UI for managing the Kafka instance, to view the event log.
 
 ## Important Notes and Future Considerations
 

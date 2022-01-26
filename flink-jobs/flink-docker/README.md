@@ -31,7 +31,7 @@ docker-compose up -d
 
 **Verify Running**
 
-You should be able to view the web interface for this Flink cluster at:  [http://localhost:8081](http://localhost:8101).
+You should be able to view the web interface for this Flink cluster at:  [http://localhost:8081](http://localhost:8081).
 
 **Try out the SQL Client**
 
