@@ -1,11 +1,11 @@
-# openmrs-analytics-spike
+# analytics-incubator
 
-This repository represents a series of spikes and experiments with a variety of software platforms that are used for data integration, ETL, analytics and reporting.
+This repository represents a collection of tools that are under evaluation for usage and to provide a means to document experiences, develop proof-of-concepts, and provide a set of building blocks for further solution designs in analytics, data integration, ETL, and reporting.
 
-Many of the directories included here encapsulate a docker-compose setup that contains related services to achieve a particular function.  In order to connect the containers between these together, all of them will share a common network and will be able to communicate with each other using the container names and ports defined. The common docker network these will share is called "openmrs-analytics-network", and should be created as follows:
+Many of the directories included here encapsulate a docker-compose setup that contains related services to achieve a particular function.  In order to connect the containers between these together, all of them will share a common network and will be able to communicate with each other using the container names and ports defined. The common docker network these will share is called "analytics-incubator-network", and should be created as follows:
 
 ```shell
-docker network create openmrs-analytics-network
+docker network create analytics-incubator-network
 ```
 
 ## Getting data out of OpenMRS

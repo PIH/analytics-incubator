@@ -53,4 +53,4 @@ services:
 networks:
   default:
     external:
-      name: "openmrs-analytics-network"
+      name: "analytics-incubator-network"
