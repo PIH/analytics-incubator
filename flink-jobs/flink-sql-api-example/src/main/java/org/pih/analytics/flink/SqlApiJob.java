@@ -16,14 +16,14 @@ import java.nio.charset.StandardCharsets;
 /**
  * Load OpenMRS Data
  */
-public class LoadOpenmrsJob {
+public class SqlApiJob {
 
-    private static final Logger log = LoggerFactory.getLogger(LoadOpenmrsJob.class);
+    private static final Logger log = LoggerFactory.getLogger(SqlApiJob.class);
 
-    public LoadOpenmrsJob() {}
+    public SqlApiJob() {}
 
     public static void main(String[] args) {
-        LoadOpenmrsJob job = new LoadOpenmrsJob();
+        SqlApiJob job = new SqlApiJob();
         job.execute();
     }
 

@@ -24,7 +24,7 @@
 
     <modules>
         <module>flink-docker</module>
-        <module>load-openmrs</module>
+        <module>flink-sql-api-example</module>
     </modules>
 
     <dependencies>

@@ -16,19 +16,19 @@ This connects with the Kafka-based [event-log](../event-log), and so this must b
 
 **Creating a Job as a Jar file that can be executed by Flink**
 
-[load-openmrs](load-openmrs) builds a job as a jar file and demonstrates how this job can be run in Intellij to test out and see Flink running successfully.
+[flink-sql-api-example](flink-sql-api-example) builds a job as a jar file and demonstrates how this job can be run in Intellij to test out and see Flink running successfully.
 
 **Running a job jar in a Flink Cluster**
 
 One can combine the two above by:
 
-* Modifying the [load-openmrs](load-openmrs) code - replacing "localhost:9092" with "kafka:9092" in the Flink SQL, and then building this with maven
+* Modifying the [flink-sql-api-example](flink-sql-api-example) code - replacing "localhost:9092" with "kafka:9092" in the Flink SQL, and then building this with maven
 * Modifying the [flink-docker](flink-docker) compose file by adding this built jar as an additional volume in the taskmanager service:
 ```
-- "../load-openmrs/target/load-openmrs-1.0.0-SNAPSHOT.jar:/opt/flink/examples/load-openmrs.jar"
+- "../flink-sql-api-example/target/flink-sql-api-example-1.0.0-SNAPSHOT.jar:/opt/flink/examples/flink-sql-api-example.jar"
 ```
 * Starting up the Flink cluster by running `docker-compose up -d`
 * Executing the job with Flink by running the following command: 
 ```shell
-docker-compose exec taskmanager ./bin/flink run ./examples/load-openmrs.jar
+docker-compose exec taskmanager ./bin/flink run ./examples/flink-sql-api-example.jar
 ```
