@@ -8,6 +8,8 @@ import org.apache.flink.table.api.TableResult;
 import org.pih.analytics.flink.functions.DateFunction;
 import org.pih.analytics.flink.functions.PreferredFunction;
 import org.pih.analytics.flink.functions.TimestampFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
@@ -15,6 +17,8 @@ import java.nio.charset.StandardCharsets;
  * Load OpenMRS Data
  */
 public class LoadOpenmrsJob {
+
+    private static final Logger log = LoggerFactory.getLogger(LoadOpenmrsJob.class);
 
     public LoadOpenmrsJob() {}
 
@@ -38,6 +42,8 @@ public class LoadOpenmrsJob {
     }
 
     public void execute() {
+
+        log.warn("Executing job");
 
         EnvironmentSettings settings = EnvironmentSettings.newInstance().build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
