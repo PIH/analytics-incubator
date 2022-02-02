@@ -13,6 +13,8 @@ CREATE TABLE patient
     creator INT,
     date_created TIMESTAMP,
     zlemr_id STRING,
+    given_name STRING,
+    family_name STRING,
     PRIMARY KEY (patient_id) NOT ENFORCED
 ) WITH (
       'connector' = 'upsert-kafka',
@@ -26,14 +28,13 @@ CREATE TABLE patient
 INSERT INTO patient
 SELECT      pat.patient_id, p.uuid, p.gender, To_Date(p.birthdate), p.birthdate_estimated, p.dead, p.cause_of_death,
             p.cause_of_death_non_coded, To_Timestamp(p.death_date), p.death_date_estimated, p.creator, To_Timestamp(p.date_created),
-            zlemr.identifier
+            zlemrid.identifier,
+            n.given_name,
+            n.family_name
 FROM        openmrs.patient pat
-INNER JOIN  openmrs.person p ON pat.patient_id = p.person_id
-LEFT JOIN (
-    SELECT      i.patient_id, Preferred(i.patient_identifier_id, i.preferred, To_Timestamp(i.date_created), i.identifier) as identifier
-    FROM        openmrs.patient_identifier i
-    INNER JOIN  openmrs.patient_identifier_type t on i.identifier_type = t.patient_identifier_type_id
-    WHERE       t.name = 'ZL EMR ID'
-    GROUP BY    i.patient_id
-) zlemr ON pat.patient_id = zlemr.patient_id
+INNER JOIN  openmrs.person p ON p.person_id = pat.patient_id
+LEFT JOIN   openmrs.preferred_name n ON n.person_id = pat.patient_id
+LEFT JOIN   openmrs.preferred_identifier zlemrid ON zlemrid.patient_id = pat.patient_id AND zlemrid.name = 'ZL EMR ID'
+WHERE       pat.voided = false
+AND         p.voided = false
 ;

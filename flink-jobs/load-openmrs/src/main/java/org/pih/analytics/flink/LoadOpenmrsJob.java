@@ -46,14 +46,22 @@ public class LoadOpenmrsJob {
         tEnv.createTemporarySystemFunction("To_Timestamp", TimestampFunction.class);
         tEnv.createTemporarySystemFunction("Preferred", PreferredFunction.class);
 
-        executeSql(tEnv, "/openmrs/openmrs.sql");
+        executeSql(tEnv, "/openmrs/database.sql");
 
-        executeSql(tEnv, "/openmrs/patient_identifier_type.sql");
-        executeSql(tEnv, "/openmrs/person.sql");
-        executeSql(tEnv, "/openmrs/patient.sql");
-        executeSql(tEnv, "/openmrs/patient_identifier.sql");
+        executeSql(tEnv, "/openmrs/tables/patient_identifier_type.sql");
 
-        executeSql(tEnv, "/zl/zl.sql");
+        executeSql(tEnv, "/openmrs/tables/person.sql");
+        executeSql(tEnv, "/openmrs/tables/person_name.sql");
+        executeSql(tEnv, "/openmrs/tables/person_address.sql");
+
+        executeSql(tEnv, "/openmrs/tables/patient.sql");
+        executeSql(tEnv, "/openmrs/tables/patient_identifier.sql");
+
+        executeSql(tEnv, "/openmrs/views/preferred_identifier.sql");
+        executeSql(tEnv, "/openmrs/views/preferred_name.sql");
+        executeSql(tEnv, "/openmrs/views/preferred_address.sql");
+
+        executeSql(tEnv, "/zl/database.sql");
 
         executeSql(tEnv, "/zl/patient.sql");
 
