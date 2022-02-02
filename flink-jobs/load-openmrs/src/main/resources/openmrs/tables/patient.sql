@@ -9,7 +9,7 @@ CREATE TABLE patient
       'connector' = 'kafka',
       'topic' = 'openmrs-humci.openmrs.patient',
       'properties.bootstrap.servers' = 'localhost:9092',
-      'properties.group.id' = 'connect-cluster-1',
+      'properties.group.id' = 'openmrs-patient-table',
       'format' = 'debezium-json',
       'scan.startup.mode' = 'earliest-offset'
 )

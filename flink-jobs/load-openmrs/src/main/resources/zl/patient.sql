@@ -8,7 +8,7 @@ CREATE TABLE patient
     dead BOOLEAN,
     cause_of_death INT,
     cause_of_death_non_coded STRING,
-    death_date TIMESTAMP ,
+    death_date TIMESTAMP,
     death_date_estimated BOOLEAN,
     creator INT,
     date_created TIMESTAMP,
@@ -20,14 +20,24 @@ CREATE TABLE patient
       'connector' = 'upsert-kafka',
       'topic' = 'openmrs-humci.zl.patient',
       'properties.bootstrap.servers' = 'localhost:9092',
-      'properties.group.id' = 'connect-cluster-1',
+      'properties.group.id' = 'zl-patient-table',
       'key.format' = 'json',
       'value.format' = 'json'
 );
 
 INSERT INTO patient
-SELECT      pat.patient_id, p.uuid, p.gender, To_Date(p.birthdate), p.birthdate_estimated, p.dead, p.cause_of_death,
-            p.cause_of_death_non_coded, To_Timestamp(p.death_date), p.death_date_estimated, p.creator, To_Timestamp(p.date_created),
+SELECT      pat.patient_id,
+            p.uuid,
+            p.gender,
+            To_Date(p.birthdate),
+            p.birthdate_estimated,
+            p.dead,
+            p.cause_of_death,
+            p.cause_of_death_non_coded,
+            To_Timestamp(p.death_date),
+            p.death_date_estimated,
+            p.creator,
+            To_Timestamp(p.date_created),
             zlemrid.identifier,
             n.given_name,
             n.family_name

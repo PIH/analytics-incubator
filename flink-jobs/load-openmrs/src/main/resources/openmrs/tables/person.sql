@@ -18,7 +18,7 @@ CREATE TABLE person
       'connector' = 'kafka',
       'topic' = 'openmrs-humci.openmrs.person',
       'properties.bootstrap.servers' = 'localhost:9092',
-      'properties.group.id' = 'connect-cluster-1',
+      'properties.group.id' = 'openmrs-person-table',
       'format' = 'debezium-json',
       'scan.startup.mode' = 'earliest-offset'
 )
