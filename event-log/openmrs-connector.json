@@ -17,6 +17,6 @@
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": false,
     "database.include.list": "openmrs",
-    "table.include.list": "openmrs.person"
+    "table.include.list": "openmrs.person,openmrs.patient,openmrs.patient_identifier,openmrs.patient_identifier_type"
   }
 }

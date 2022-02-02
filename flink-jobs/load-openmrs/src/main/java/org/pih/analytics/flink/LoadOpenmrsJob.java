@@ -1,8 +1,15 @@
 package org.pih.analytics.flink;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
+import org.pih.analytics.flink.functions.DateFunction;
+import org.pih.analytics.flink.functions.PreferredFunction;
+import org.pih.analytics.flink.functions.TimestampFunction;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Load OpenMRS Data
@@ -16,58 +23,43 @@ public class LoadOpenmrsJob {
         job.execute();
     }
 
+    public void executeSql(TableEnvironment tEnv, String resource) {
+        try {
+            String query = IOUtils.resourceToString(resource, StandardCharsets.UTF_8);
+            for (String statement : query.split(";")) {
+                if (StringUtils.isNotBlank(statement)) {
+                    tEnv.executeSql(statement);
+                }
+            }
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error loading sql from " + resource, e);
+        }
+    }
+
     public void execute() {
 
         EnvironmentSettings settings = EnvironmentSettings.newInstance().build();
         TableEnvironment tEnv = TableEnvironment.create(settings);
 
-        tEnv.executeSql("" +
-                "CREATE TABLE person_changes (\n" +
-                "  person_id INT,\n" +
-                "  uuid STRING, \n" +
-                "  gender STRING,\n" +
-                "  birthdate BIGINT,\n" +
-                "  birthdate_estimated BOOLEAN,\n" +
-                "  dead BOOLEAN,\n" +
-                "  cause_of_death INT,\n" +
-                "  cause_of_death_non_coded STRING,\n" +
-                "  death_date BIGINT,\n" +
-                "  death_date_estimated BOOLEAN,\n" +
-                "  creator INT,\n" +
-                "  date_created BIGINT,\n" +
-                "  PRIMARY KEY (person_id) NOT ENFORCED\n" +
-                ") WITH (\n" +
-                "    'connector' = 'kafka',\n" +
-                "    'topic' = 'openmrs-humci.openmrs.person',\n" +
-                "    'properties.bootstrap.servers' = 'localhost:9092',\n" +
-                "    'properties.group.id' = 'connect-cluster-1',\n" +
-                "    'format' = 'debezium-json',\n" +
-                "    'scan.startup.mode' = 'earliest-offset'\n" +
-                ")");
+        tEnv.createTemporarySystemFunction("To_Date", DateFunction.class);
+        tEnv.createTemporarySystemFunction("To_Timestamp", TimestampFunction.class);
+        tEnv.createTemporarySystemFunction("Preferred", PreferredFunction.class);
 
-        //TableResult result = tEnv.executeSql("select * from person_changes");
-        //result.print();
+        executeSql(tEnv, "/openmrs/openmrs.sql");
 
-        tEnv.executeSql("" +
-                "CREATE TABLE person_index(\n" +
-                "  person_id INT PRIMARY KEY NOT ENFORCED,\n" +
-                "  uuid STRING,\n" +
-                "  gender STRING,\n" +
-                "  birthdate BIGINT\n" +
-                ") WITH (\n" +
-                "  'connector' = 'elasticsearch-7',\n" +
-                "  'hosts' = 'http://localhost:9200',\n" +
-                "  'index' = 'person_index'\n" +
-                ")"
-        );
+        executeSql(tEnv, "/openmrs/patient_identifier_type.sql");
+        executeSql(tEnv, "/openmrs/person.sql");
+        executeSql(tEnv, "/openmrs/patient.sql");
+        executeSql(tEnv, "/openmrs/patient_identifier.sql");
 
-        tEnv.executeSql("" +
-                "INSERT INTO person_index\n" +
-                "SELECT p.person_id,\n" +
-                "       p.uuid,\n" +
-                "       p.gender,\n" +
-                "       p.birthdate\n" +
-                "FROM person_changes p\n"
-        );
+        executeSql(tEnv, "/zl/zl.sql");
+
+        executeSql(tEnv, "/zl/patient.sql");
+
+        executeSql(tEnv, "/elasticsearch/patient.sql");
+
+        TableResult result = tEnv.executeSql("select count(*) as num_patients from patient");
+        result.print();
     }
 }

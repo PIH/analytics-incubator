@@ -27,6 +27,13 @@ The idea here is that a Flink cluster can act as a direct consumer of the MySQL 
 
 The idea here would be to build a custom application that could embed Debezium and other libraries.  This would require further investigation to pursue if desired.
 
+## Data processing / ETL
+
+* Apache Flink
+* Apache Spark
+* Apache Beam
+* Apache Airflow
+
 ## Getting data into an Analytics Data Store
 
 The following approachs and tools should be evaluated:
