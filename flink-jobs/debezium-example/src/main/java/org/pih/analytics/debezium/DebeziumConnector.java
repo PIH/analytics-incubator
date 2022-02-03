@@ -1,4 +1,4 @@
-package org.pih.analytics.flink.direct;
+package org.pih.analytics.debezium;
 
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
