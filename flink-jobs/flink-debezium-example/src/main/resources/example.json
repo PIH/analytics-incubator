@@ -1,0 +1,49 @@
+{
+  "key": {
+    "patient_identifier_type_id": 15
+  },
+  "value": {
+    "before": null,
+    "after": {
+      "patient_identifier_type_id": 15,
+      "name": "HIV EMR V1 Infant Code",
+      "description": "Code referencing the HIV EMR INFANT_CODE field in the Haiti EMR V1 system",
+      "format": null,
+      "check_digit": 0,
+      "creator": 2,
+      "date_created": 1621260289000,
+      "required": 0,
+      "format_description": null,
+      "validator": null,
+      "location_behavior": "NOT_USED",
+      "retired": 0,
+      "retired_by": null,
+      "date_retired": null,
+      "retire_reason": null,
+      "uuid": "5FB435B4-F573-48C0-A715-FEBD42FDBB75",
+      "uniqueness_behavior": "NON_UNIQUE",
+      "date_changed": 1621260289000,
+      "changed_by": 2
+    },
+    "source": {
+      "version": "1.8.0.Final",
+      "connector": "mysql",
+      "name": "openmrs-humci",
+      "ts_ms": 1643856445097,
+      "snapshot": "last",
+      "db": "openmrs",
+      "sequence": null,
+      "table": "patient_identifier_type",
+      "server_id": 0,
+      "gtid": null,
+      "file": "binlog.000002",
+      "pos": 2958,
+      "row": 0,
+      "thread": null,
+      "query": null
+    },
+    "op": "r",
+    "ts_ms": 1643856445097,
+    "transaction": null
+  }
+}

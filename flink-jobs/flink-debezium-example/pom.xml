@@ -31,6 +31,7 @@
             <artifactId>debezium-embedded</artifactId>
             <version>${debeziumVersion}</version>
         </dependency>
+
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-connector-mysql</artifactId>
@@ -68,7 +69,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.pih.analytics.flink.FlinkDebeziumConnector</mainClass>
+                            <mainClass>org.pih.analytics.flink.direct.DebeziumConnector</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
