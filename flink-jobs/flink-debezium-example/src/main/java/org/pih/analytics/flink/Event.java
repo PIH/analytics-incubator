@@ -17,7 +17,7 @@ public class Event implements Serializable {
     public Operation operation;
     public int patientId;
     public long timestamp;
-    public JsonNode values;
+    public RowValues values;
 
     public Event(String json) {
         try {
@@ -27,24 +27,18 @@ public class Event implements Serializable {
             table = sourceNode.get("table").textValue();
             operation = Operation.parse(eventNode.get("op").textValue());
             timestamp = eventNode.get("ts_ms").longValue();
+            JsonNode valueNode = eventNode.get("after");
             if (operation == Operation.DELETE) {
-                values = eventNode.get("before");
+                valueNode = eventNode.get("before");
             }
-            else {
-                values = eventNode.get("after");
+            values = getMapper().treeToValue(valueNode, RowValues.class);
+            Integer patientIdVal = values.getInteger("patient_id");
+            if (patientIdVal == null) {
+                patientIdVal = values.getInteger("person_id");
             }
-            JsonNode patientIdNode = values.get("patient_id");
-            if (patientIdNode == null) {
-                patientIdNode = values.get("person_id");
-            }
-            if (patientIdNode != null) {
-                patientId = patientIdNode.intValue();
-            }
-            else {
-                patientId = -1;
-            }
-            JsonNode voidedNode = values.get("voided");
-            if (voidedNode != null && voidedNode.intValue() == 1) {
+            patientId = (patientIdVal == null ? -1 : patientIdVal);
+            boolean voidedVal = values.getBoolean("voided", false);
+            if (voidedVal) {
                 if (operation == Operation.READ) {
                     operation = Operation.READ_VOID;
                 }
@@ -54,7 +48,8 @@ public class Event implements Serializable {
             }
         }
         catch (Exception e) {
-            System.out.println("Error parsing event from JSON: " + json);
+            System.out.println("Error parsing event from JSON: " + json + ": " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
