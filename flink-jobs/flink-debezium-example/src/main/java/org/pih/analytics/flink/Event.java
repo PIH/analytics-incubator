@@ -12,6 +12,7 @@ public class Event implements Serializable {
 
     static final JsonMapper mapper = new JsonMapper();
 
+    public String serverName;
     public String table;
     public Operation operation;
     public int patientId;
@@ -21,7 +22,9 @@ public class Event implements Serializable {
     public Event(String json) {
         try {
             JsonNode eventNode = getMapper().readTree(json);
-            table = eventNode.get("source").get("table").textValue();
+            JsonNode sourceNode = eventNode.get("source");
+            serverName = sourceNode.get("name").textValue();
+            table = sourceNode.get("table").textValue();
             operation = Operation.parse(eventNode.get("op").textValue());
             timestamp = eventNode.get("ts_ms").longValue();
             if (operation == Operation.DELETE) {
@@ -61,6 +64,6 @@ public class Event implements Serializable {
 
     @Override
     public String toString() {
-        return timestamp + "," + operation + "," + patientId + "," + table + " " + values;
+        return timestamp + "," + serverName + "," + operation + "," + patientId + "," + table + " " + values;
     }
 }

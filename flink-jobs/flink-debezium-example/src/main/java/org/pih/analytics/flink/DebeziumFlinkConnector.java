@@ -32,6 +32,8 @@ public class DebeziumFlinkConnector {
         Properties p = loadDebeziumProperties();
 
         MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
+                .debeziumProperties(p)
+                .serverId(p.getProperty("database.server.id", "0"))
                 .hostname(p.getProperty("database.hostname", "localhost"))
                 .port(Integer.parseInt(p.getProperty("database.port", "3308")))
                 .databaseList(p.getProperty("database.include.list", "openmrs"))
