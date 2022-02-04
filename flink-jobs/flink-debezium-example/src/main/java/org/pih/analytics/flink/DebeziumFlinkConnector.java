@@ -3,6 +3,11 @@ package org.pih.analytics.flink;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,16 +41,36 @@ public class DebeziumFlinkConnector {
                 .deserializer(new JsonDebeziumDeserializationSchema())
                 .build();
 
+        // Setup an execution environment.  Needs more research on best configuration of options.
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(600000);
 
-        // enable checkpoint
-        env.enableCheckpointing(3000);
+        // Setup a stream from the MySQL Bin Log
+        DataStreamSource<String> binlogStream = env
+                .fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "OpenMRS MySQL");
 
-        env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "MySQL Source")
-                .setParallelism(4) // set 4 parallel source tasks
-                .print().setParallelism(1); // use parallelism 1 for sink to keep message ordering
+        // Set the initial parallelism to 1, to ensure we process event in order until we can group by patient
+        binlogStream.setParallelism(1);
 
-        env.execute("Print MySQL Snapshot + Binlog");
+        // Transform the stream of JSON into a Stream of Event objects
+        DataStream<Event> eventStream = binlogStream
+                .map((MapFunction<String, Event>) s -> new Event(s))
+                .setParallelism(1);
+
+        // Filter out any Events that were read in during an initial snapshot and already voided to start out with
+        DataStream<Event> filteredEventStream = eventStream
+                .filter((FilterFunction<Event>) event -> event.operation != Operation.READ_VOID)
+                .setParallelism(1);
+
+        // Partition the event stream by patient, so that all operations for the same patient are processed together
+        KeyedStream<Event, Integer> eventsByPatientStream = filteredEventStream
+                .keyBy(event -> event.patientId);
+
+        // Output to a Print sink.  Use up to 10 different partitions
+        eventsByPatientStream.print().setParallelism(10);
+
+        // Execute the job
+        env.execute("OpenMRS ETL Pipeline");
     }
 
     public Properties loadDebeziumProperties() {
