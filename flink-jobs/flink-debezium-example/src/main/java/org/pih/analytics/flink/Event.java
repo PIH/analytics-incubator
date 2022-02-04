@@ -10,18 +10,17 @@ import java.io.Serializable;
  */
 public class Event implements Serializable {
 
-    static final JsonMapper mapper = new JsonMapper();
+    private static final JsonMapper mapper = new JsonMapper();
 
     public String serverName;
     public String table;
     public Operation operation;
-    public int patientId;
     public long timestamp;
     public RowValues values;
 
     public Event(String json) {
         try {
-            JsonNode eventNode = getMapper().readTree(json);
+            JsonNode eventNode = mapper.readTree(json);
             JsonNode sourceNode = eventNode.get("source");
             serverName = sourceNode.get("name").textValue();
             table = sourceNode.get("table").textValue();
@@ -31,12 +30,7 @@ public class Event implements Serializable {
             if (operation == Operation.DELETE) {
                 valueNode = eventNode.get("before");
             }
-            values = getMapper().treeToValue(valueNode, RowValues.class);
-            Integer patientIdVal = values.getInteger("patient_id");
-            if (patientIdVal == null) {
-                patientIdVal = values.getInteger("person_id");
-            }
-            patientId = (patientIdVal == null ? -1 : patientIdVal);
+            values = mapper.treeToValue(valueNode, RowValues.class);
             boolean voidedVal = values.getBoolean("voided", false);
             if (voidedVal) {
                 if (operation == Operation.READ) {
@@ -53,12 +47,8 @@ public class Event implements Serializable {
         }
     }
 
-    static synchronized JsonMapper getMapper() {
-        return mapper;
-    }
-
     @Override
     public String toString() {
-        return timestamp + "," + serverName + "," + operation + "," + patientId + "," + table + " " + values;
+        return timestamp + "," + serverName + "," + operation + "," + table + " " + values;
     }
 }
