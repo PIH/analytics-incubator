@@ -25,7 +25,7 @@ public class RowValues extends HashMap<String, Object> {
         Object ret = get(key);
         if (ret == null) { return null; }
         if (ret instanceof Boolean) { return (Boolean)ret; }
-        if (ret instanceof Number) { return ((Number)ret).intValue() == 0; }
+        if (ret instanceof Number) { return ((Number)ret).intValue() == 1; }
         return Boolean.parseBoolean(ret.toString());
     }
 

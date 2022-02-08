@@ -31,6 +31,11 @@ public class DebeziumFlinkConnector {
     public void start() throws Exception {
         Properties p = loadDebeziumProperties();
 
+        /*
+        Create a source of binlog events.  The provided JsonDebeziumDeserializationSchema seems to work well, but
+        I created a custom JsonDeserializationSchema just to explicitly include the timestamp and key json as properties
+        in addition to the value json.  This also provides a guide to how one would further customize this.
+         */
         MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
                 .debeziumProperties(p)
                 .serverId(p.getProperty("database.server.id", "0"))
@@ -40,14 +45,20 @@ public class DebeziumFlinkConnector {
                 .tableList(p.getProperty("table.include.list"))
                 .username(p.getProperty("database.user"))
                 .password(p.getProperty("database.password"))
-                .deserializer(new JsonDebeziumDeserializationSchema())
+                .deserializer(new JsonDeserializationSchema())
                 .build();
 
         // Setup an execution environment.  Needs more research on best configuration of options.
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(600000);
 
-        // Setup a stream from the MySQL Bin Log
+        /*
+        Set up a stream from the MySQL Bin Log.  We set up a strategy of no watermarks, as we make the assumption
+        that, with events streaming from the bin log, that processing time and event time will always match.
+        From https://nightlies.apache.org/flink/flink-docs-release-1.11/api/java/org/apache/flink/api/common/eventtime/WatermarkStrategy.html
+        "Creates a watermark strategy that generates no watermarks at all.
+        This may be useful in scenarios that do pure processing-time based stream processing."
+         */
         DataStreamSource<String> binlogStream = env
                 .fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "OpenMRS MySQL");
 
@@ -60,16 +71,12 @@ public class DebeziumFlinkConnector {
                 .setParallelism(1);
 
         // Filter out any Events that were read in during an initial snapshot and already voided to start out with
-        DataStream<Event> filteredEventStream = eventStream
+        eventStream = eventStream
                 .filter((FilterFunction<Event>) event -> event.operation != Operation.READ_VOID)
                 .setParallelism(1);
 
-        // Partition the event stream by patient, so that all operations for the same patient are processed together
-        KeyedStream<Event, Integer> eventsByPatientStream = filteredEventStream
-                .keyBy(event -> event.patientId);
-
         // Output to a Print sink.  Use up to 10 different partitions
-        eventsByPatientStream.print().setParallelism(10);
+        eventStream.print().setParallelism(10);
 
         // Execute the job
         env.execute("OpenMRS ETL Pipeline");

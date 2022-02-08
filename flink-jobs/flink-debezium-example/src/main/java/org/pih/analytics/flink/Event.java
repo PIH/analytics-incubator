@@ -1,7 +1,7 @@
 package org.pih.analytics.flink;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.pih.analytics.flink.util.Json;
 
 import java.io.Serializable;
 
@@ -10,27 +10,29 @@ import java.io.Serializable;
  */
 public class Event implements Serializable {
 
-    private static final JsonMapper mapper = new JsonMapper();
-
     public String serverName;
     public String table;
+    public String key;
     public Operation operation;
     public long timestamp;
     public RowValues values;
 
     public Event(String json) {
         try {
-            JsonNode eventNode = mapper.readTree(json);
-            JsonNode sourceNode = eventNode.get("source");
+            JsonNode eventNode = Json.readJsonString(json);
+            JsonNode eventKeyNode = eventNode.get("key");
+            JsonNode eventValueNode = eventNode.get("value");
+            JsonNode sourceNode = eventValueNode.get("source");
             serverName = sourceNode.get("name").textValue();
             table = sourceNode.get("table").textValue();
-            operation = Operation.parse(eventNode.get("op").textValue());
-            timestamp = eventNode.get("ts_ms").longValue();
-            JsonNode valueNode = eventNode.get("after");
+            operation = Operation.parse(eventValueNode.get("op").textValue());
+            timestamp = eventValueNode.get("ts_ms").longValue();
+            key = eventKeyNode.toString();
+            JsonNode valueNode = eventValueNode.get("after");
             if (operation == Operation.DELETE) {
-                valueNode = eventNode.get("before");
+                valueNode = eventValueNode.get("before");
             }
-            values = mapper.treeToValue(valueNode, RowValues.class);
+            values = Json.readJsonNode(valueNode, RowValues.class);
             boolean voidedVal = values.getBoolean("voided", false);
             if (voidedVal) {
                 if (operation == Operation.READ) {
@@ -49,6 +51,6 @@ public class Event implements Serializable {
 
     @Override
     public String toString() {
-        return timestamp + "," + serverName + "," + operation + "," + table + " " + values;
+        return timestamp + "," + serverName + "," + operation + "," + table + "," + key + "," + values;
     }
 }

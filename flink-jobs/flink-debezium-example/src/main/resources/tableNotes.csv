@@ -1,0 +1,87 @@
+
+Keyed stream on person-related tables:
+
+
+
+
+- Person
+person_id (person, person_name, person_attribute, person_address, obs)
+person_a (relationship)
+person_b (relationship)
+
+- Patient
+patient_id (patient, patient_identifier, patient_program, visit, encounter, orders, order_group, allergy, conditions, encounter_diagnosis)
+
+- Program Enrollment
+patient_program_id (patient_program, patient_state, patient_program_attribute)
+
+- Visit
+visit_id (visit, encounter, visit_attribute)
+
+- Encounter
+encounter_id (encounter, encounter_provider, obs, orders, order_group, conditions, encounter_diagnosis)
+
+- Order
+order_id (orders, test_order, drug_order)
+
+order_group_id (order_group, orders)
+allergy_id (allergy, allergy_reaction)
+condition_id (condition, encounter_diagnosis)
+
+
+care_setting
+concept
+concept_answer
+concept_attribute
+concept_attribute_type
+concept_class
+concept_complex
+concept_datatype
+concept_description
+concept_map_type
+concept_name
+concept_name_tag
+concept_name_tag_map
+concept_numeric
+concept_reference_map
+concept_reference_source
+concept_reference_term
+concept_reference_term_map
+concept_set
+encounter_role
+encounter_type
+drug
+drug_ingredient
+form
+global_property
+htmlformentry_html_form
+location
+location_attribute
+location_attribute_type
+location_tag
+location_tag_map
+metadatamapping_metadata_set
+metadatamapping_metadata_set_member
+metadatamapping_metadata_source
+metadatamapping_metadata_term_mapping
+order_frequency
+order_set
+order_set_member
+order_type
+patient_identifier_type
+person_attribute_type
+program
+program_attribute_type
+program_workflow
+program_workflow_state
+provider
+provider_attribute
+provider_attribute_type
+providermanagement_provider_role
+providermanagement_provider_role_provider_attribute_type
+providermanagement_provider_role_relationship_type
+providermanagement_provider_role_supervisee_provider_role
+relationship_type
+users
+visit_type
+visit_attribute_type
