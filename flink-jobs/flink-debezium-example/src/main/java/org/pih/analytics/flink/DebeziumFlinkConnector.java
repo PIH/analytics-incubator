@@ -2,9 +2,9 @@ package org.pih.analytics.flink;
 
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -12,13 +12,16 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
-import org.pih.analytics.flink.util.Json;
+import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.pih.analytics.flink.util.Props;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -36,12 +39,18 @@ public class DebeziumFlinkConnector {
     }
 
     public void start() throws Exception {
+
         Properties p = Props.readResource("/mysql.properties");
 
-        // TODO: Consider something like this
-        final String databaseName = p.getProperty("database.name", "openmrs");
-        final TableList tableList = Json.readJsonResource("/tables.json", TableList.class);
-        final String[] tables = tableList.getTables(databaseName);
+        String databaseName = p.getProperty("database.name", "openmrs");
+        String[] prefixedTables = p.getProperty("database.tables").split(",");
+
+        List<String> tables = new ArrayList<>();
+        for (int i=0; i<prefixedTables.length; i++) {
+            String tableName = prefixedTables[i].trim().toLowerCase();
+            prefixedTables[i] = databaseName + "." + tableName;
+            tables.add(tableName);
+        }
 
         /*
         Create a source of binlog events.  The provided JsonDebeziumDeserializationSchema seems to work well, but
@@ -54,7 +63,7 @@ public class DebeziumFlinkConnector {
                 .hostname(p.getProperty("database.hostname", "localhost"))
                 .port(Integer.parseInt(p.getProperty("database.port", "3308")))
                 .databaseList(databaseName)
-                .tableList(tables)
+                .tableList(prefixedTables)
                 .username(p.getProperty("database.user"))
                 .password(p.getProperty("database.password"))
                 .deserializer(new JsonDeserializationSchema())
@@ -82,52 +91,42 @@ public class DebeziumFlinkConnector {
                 .map((MapFunction<String, Event>) s -> new Event(s))
                 .setParallelism(1);
 
-        // Output to a File sink.
-        eventStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/raw-events")).setParallelism(1);
-
         // Filter out any Events that were read in during an initial snapshot and already voided to start out with
         eventStream = eventStream
                 .filter((FilterFunction<Event>) event -> event.operation != Operation.READ_VOID)
                 .setParallelism(1);
 
-        // Output to a File sink.
-        eventStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/cleaned-events")).setParallelism(1);
-
-        // Partition out the Event stream by table
+        // Partition out the stream by table
         KeyedStream<Event, String> keyedStream = eventStream
                 .keyBy(event -> event.table);
 
-        keyedStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/keyed-table-events")).setParallelism(1);
+        // Iterate over each of the tables that contain patient data of interest, and partition out events into one stream per table
+        Map<String, DataStream<Event>> tableStreams = new HashMap<>();
+        for (String table : tables) {
+            DataStream<Event> tableStream = keyedStream
+                    .filter(event -> event.table.equals(table))
+                    .setParallelism(1);
+
+            // Window the input data into sessions with 5 seconds or more of inactivity, to group all related updates together for a given patient
+            // Reduce this down to the most recent event per table row, which represents the final state at the end of the window
+            tableStream = tableStream
+                    .keyBy(event -> event.key)
+                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(5)))
+                    .reduce((ReduceFunction<Event>) (e1, e2) -> (e1.timestamp > e2.timestamp) ? e1 : e2)
+                    .setParallelism(1);
+
+            // TODO: This file sink represents a point in which we could update a raw data store by table
+            tableStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/" + table + "-events")).setParallelism(1);
+            tableStreams.put(table, tableStream);
+        }
+
+        // TODO: Enrich streams, merge streams, etc
 
         // Output to a Print sink.  Use up to 10 different partitions
         eventStream.print().setParallelism(10);
 
         // Execute the job
         env.execute("OpenMRS ETL Pipeline");
-    }
-
-    public static class EventAggregator implements AggregateFunction<Event, List<Event>, List<Event>> {
-        @Override
-        public List<Event> createAccumulator() {
-            return new ArrayList<>();
-        }
-
-        @Override
-        public List<Event> add(Event event, List<Event> events) {
-            events.add(event);
-            return events;
-        }
-
-        @Override
-        public List<Event> getResult(List<Event> events) {
-            return null;
-        }
-
-        @Override
-        public List<Event> merge(List<Event> events, List<Event> acc1) {
-            acc1.addAll(events);
-            return acc1;
-        }
     }
 
     public StreamingFileSink<Event> getFileSink(String outputPath) {
