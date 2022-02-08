@@ -15,7 +15,7 @@ public class TableList extends ArrayList<Table> {
     public String[] getTables(String databasePrefix) {
         List<String> ret = new ArrayList<>();
         for (Table table : this) {
-            ret.add(StringUtils.isNotBlank(databasePrefix) ? databasePrefix + "." : "" + table.tableName);
+            ret.add((StringUtils.isNotBlank(databasePrefix) ? databasePrefix + "." : "") + table.tableName);
         }
         return ret.toArray(ret.toArray(new String[0]));
     }

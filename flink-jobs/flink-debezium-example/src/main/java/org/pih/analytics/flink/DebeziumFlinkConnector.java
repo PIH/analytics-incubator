@@ -1,12 +1,10 @@
 package org.pih.analytics.flink;
 
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
-import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -38,23 +36,25 @@ public class DebeziumFlinkConnector {
     }
 
     public void start() throws Exception {
-        Properties p = Props.readResource("/debezium.properties");
+        Properties p = Props.readResource("/mysql.properties");
 
         // TODO: Consider something like this
-        //final TableList tables = Json.readJsonResource("/tables.json", TableList.class);
+        final String databaseName = p.getProperty("database.name", "openmrs");
+        final TableList tableList = Json.readJsonResource("/tables.json", TableList.class);
+        final String[] tables = tableList.getTables(databaseName);
 
         /*
         Create a source of binlog events.  The provided JsonDebeziumDeserializationSchema seems to work well, but
-        I created a custom JsonDeserializationSchema just to explicitly include the timestamp and key json as properties
-        in addition to the value json.  This also provides a guide to how one would further customize this.
+        this adds a custom JsonDeserializationSchema to explicitly include the key as well as the value in the resulting
+        json.  This also provides a customizable class for possible further enhancements.
          */
         MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
                 .debeziumProperties(p)
                 .serverId(p.getProperty("database.server.id", "0"))
                 .hostname(p.getProperty("database.hostname", "localhost"))
                 .port(Integer.parseInt(p.getProperty("database.port", "3308")))
-                .databaseList(p.getProperty("database.include.list", "openmrs"))
-                .tableList(p.getProperty("table.include.list"))
+                .databaseList(databaseName)
+                .tableList(tables)
                 .username(p.getProperty("database.user"))
                 .password(p.getProperty("database.password"))
                 .deserializer(new JsonDeserializationSchema())
@@ -74,7 +74,7 @@ public class DebeziumFlinkConnector {
         DataStreamSource<String> binlogStream = env
                 .fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "OpenMRS MySQL");
 
-        // Set the initial parallelism to 1, to ensure we process event in order until we can group by patient
+        // Set the initial parallelism to 1, to ensure we process event in order until we can partition out to appropriate streams
         binlogStream.setParallelism(1);
 
         // Transform the stream of JSON into a Stream of Event objects
@@ -82,10 +82,22 @@ public class DebeziumFlinkConnector {
                 .map((MapFunction<String, Event>) s -> new Event(s))
                 .setParallelism(1);
 
+        // Output to a File sink.
+        eventStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/raw-events")).setParallelism(1);
+
         // Filter out any Events that were read in during an initial snapshot and already voided to start out with
         eventStream = eventStream
                 .filter((FilterFunction<Event>) event -> event.operation != Operation.READ_VOID)
                 .setParallelism(1);
+
+        // Output to a File sink.
+        eventStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/cleaned-events")).setParallelism(1);
+
+        // Partition out the Event stream by table
+        KeyedStream<Event, String> keyedStream = eventStream
+                .keyBy(event -> event.table);
+
+        keyedStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/keyed-table-events")).setParallelism(1);
 
         // Output to a Print sink.  Use up to 10 different partitions
         eventStream.print().setParallelism(10);
