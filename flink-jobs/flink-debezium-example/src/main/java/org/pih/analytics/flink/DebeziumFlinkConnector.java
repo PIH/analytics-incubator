@@ -3,15 +3,24 @@ package org.pih.analytics.flink;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
+import org.apache.flink.api.common.serialization.SimpleStringEncoder;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
+import org.pih.analytics.flink.util.Json;
+import org.pih.analytics.flink.util.Props;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -29,7 +38,10 @@ public class DebeziumFlinkConnector {
     }
 
     public void start() throws Exception {
-        Properties p = loadDebeziumProperties();
+        Properties p = Props.readResource("/debezium.properties");
+
+        // TODO: Consider something like this
+        //final TableList tables = Json.readJsonResource("/tables.json", TableList.class);
 
         /*
         Create a source of binlog events.  The provided JsonDebeziumDeserializationSchema seems to work well, but
@@ -82,14 +94,34 @@ public class DebeziumFlinkConnector {
         env.execute("OpenMRS ETL Pipeline");
     }
 
-    public Properties loadDebeziumProperties() {
-        try {
-            Properties props = new Properties();
-            props.load(DebeziumFlinkConnector.class.getResourceAsStream("/debezium.properties"));
-            return props;
+    public static class EventAggregator implements AggregateFunction<Event, List<Event>, List<Event>> {
+        @Override
+        public List<Event> createAccumulator() {
+            return new ArrayList<>();
         }
-        catch(Exception e) {
-            throw new RuntimeException("Unable to load debezium.properties", e);
+
+        @Override
+        public List<Event> add(Event event, List<Event> events) {
+            events.add(event);
+            return events;
         }
+
+        @Override
+        public List<Event> getResult(List<Event> events) {
+            return null;
+        }
+
+        @Override
+        public List<Event> merge(List<Event> events, List<Event> acc1) {
+            acc1.addAll(events);
+            return acc1;
+        }
+    }
+
+    public StreamingFileSink<Event> getFileSink(String outputPath) {
+        final StreamingFileSink<Event> sink = StreamingFileSink
+                .forRowFormat(new Path(outputPath), new SimpleStringEncoder<Event>("UTF-8"))
+                .build();
+        return sink;
     }
 }
