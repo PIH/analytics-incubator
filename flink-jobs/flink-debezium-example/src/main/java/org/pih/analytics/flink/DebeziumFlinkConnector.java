@@ -129,6 +129,13 @@ public class DebeziumFlinkConnector {
             tableStreams.put(table, tableStream);
         }
 
+        // At this point, we have all of our data events in table-keyed partition streams.
+        // However, we may want to re-partition by patient, TBD
+
+
+
+
+
         // Write out a summary of the data for testing and debugging
         for (String table : tableStreams.keySet()) {
             DataStream<Map<String, Integer>> tableStream = tableStreams.get(table)

@@ -30,6 +30,7 @@ public class EnhancedEventFunction extends KeyedProcessFunction<String, Event, E
     @Override
     public void processElement(Event event, KeyedProcessFunction<String, Event, Event>.Context context, Collector<Event> collector) throws Exception {
         enhancePatientState(event);
+        enhancePersonAndPatientIds(event);
         collector.collect(event);
     }
 
@@ -38,6 +39,17 @@ public class EnhancedEventFunction extends KeyedProcessFunction<String, Event, E
             Integer patientProgramId = event.values.getInteger("patient_program_id");
             Object patientId = Mysql.lookupValue(connection, "patient_program", "patient_id", "patient_program_id", patientProgramId);
             event.values.put("patient_id", patientId);
+        }
+    }
+
+    protected void enhancePersonAndPatientIds(Event event) {
+        Integer patientId = event.values.getInteger("patient_id");
+        Integer personId = event.values.getInteger("person_id");
+        if (patientId == null && personId != null) {
+            event.values.put("patient_id", personId);
+        }
+        else if (patientId != null && personId == null) {
+            event.values.put("person_id", patientId);
         }
     }
 }
