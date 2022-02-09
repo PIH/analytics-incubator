@@ -14,6 +14,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.pih.analytics.flink.experimental.EnhancedEventFunction;
+import org.pih.analytics.flink.experimental.EventCountAggregator;
 import org.pih.analytics.flink.util.Props;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,15 +117,26 @@ public class DebeziumFlinkConnector {
                     .reduce((ReduceFunction<Event>) (e1, e2) -> (e1.timestamp > e2.timestamp) ? e1 : e2)
                     .setParallelism(1);
 
-            // TODO: This file sink represents a point in which we could update a raw data store by table
-            tableStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/" + table + "-events")).setParallelism(1);
+            // TODO: This represents a point in which we could update a raw data store by table
+
+            // Run each stream of table events through a process function that can enhance them, for example add patient_id to events that lack it
+            tableStream = tableStream
+                    .keyBy(event -> event.key)
+                    .process(new EnhancedEventFunction());
+
+            tableStream.addSink(getFileSink("/home/mseaton/environments/humci/flink/" + table + "-enhanced")).setParallelism(1);
+
             tableStreams.put(table, tableStream);
         }
 
-        // TODO: Enrich streams, merge streams, etc
+        // Write out a summary of the data for testing and debugging
+        for (String table : tableStreams.keySet()) {
+            DataStream<Map<String, Integer>> tableStream = tableStreams.get(table)
+                    .windowAll(ProcessingTimeSessionWindows.withGap(Time.seconds(5)))
+                    .aggregate(new EventCountAggregator());
 
-        // Output to a Print sink.  Use up to 10 different partitions
-        eventStream.print().setParallelism(10);
+            tableStream.print().setParallelism(10);
+        }
 
         // Execute the job
         env.execute("OpenMRS ETL Pipeline");

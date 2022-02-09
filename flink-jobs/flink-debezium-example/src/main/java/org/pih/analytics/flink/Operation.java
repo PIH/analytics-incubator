@@ -1,6 +1,6 @@
 package org.pih.analytics.flink;
 
-enum Operation {
+public enum Operation {
 
     READ,
     READ_VOID,
