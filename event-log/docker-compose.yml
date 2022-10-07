@@ -42,7 +42,6 @@ services:
   kowl:
     image: quay.io/cloudhut/kowl:master
     container_name: "kowl"
-    restart: always
     ports:
       - "8282:8080"
     environment:
