@@ -8,15 +8,31 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 /**
- * Json ser/de utility
+ * Utility methods
  */
-public class Json {
+public class Util {
 
-    private static final Logger log = LoggerFactory.getLogger(Json.class);
+    private static final Logger log = LoggerFactory.getLogger(Util.class);
 
     private static final JsonMapper mapper = new JsonMapper();
+
+    //***** I/O UTILITIES
+
+    public static Properties readResource(String resourceName) {
+        try {
+            Properties props = new Properties();
+            props.load(Util.class.getResourceAsStream(resourceName));
+            return props;
+        }
+        catch(Exception e) {
+            throw new RuntimeException("Unable to load Properties from " + resourceName, e);
+        }
+    }
+
+    //***** JSON UTILITIES
 
     public static JsonNode readJsonString(String json) {
         try {

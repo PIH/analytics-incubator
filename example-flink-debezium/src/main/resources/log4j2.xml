@@ -20,6 +20,9 @@
 		</Console>
 	</Appenders>
 	<Loggers>
+		<!-- Suppress warnings around use of utf8mb3 charset -->
+		<Logger name="io.debezium.connector.mysql.MySqlValueConverters" level="ERROR"/>
+
 		<Logger name="org.pih" level="DEBUG" />
 
 		<Root level="WARN">

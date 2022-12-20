@@ -1,14 +1,13 @@
-package org.pih.analytics.flink;
+package org.pih.analytics.flink.debezium;
 
-public enum Operation {
+public enum DebeziumOperation {
 
     READ,
-    READ_VOID,
     INSERT,
     UPDATE,
     DELETE;
 
-    public static Operation parse(String operation) {
+    public static DebeziumOperation parse(String operation) {
         if ("r".equals(operation)) {
             return READ;
         }

@@ -1,0 +1,18 @@
+{
+  "streamId": "humci-stream",
+  "mysqlSource": {
+    "serverId": 100002,
+    "host": "localhost",
+    "port": 3308,
+    "databaseName": "humci",
+    "user": "root",
+    "password": "root"
+  },
+  "mysqlTables": [
+    "person", "person_name", "person_address", "person_attribute",
+    "patient", "patient_identifier",
+    "encounter"
+  ],
+  "debeziumProperties": {
+  }
+}

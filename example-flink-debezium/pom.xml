@@ -55,6 +55,15 @@
             <version>${flink.version}</version>
         </dependency>
 
+        <!-- Testing -->
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Other -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

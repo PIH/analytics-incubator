@@ -1,12 +1,12 @@
-package org.pih.analytics.flink.experimental;
+package org.pih.analytics.flink.function;
 
 import org.apache.flink.api.common.functions.AggregateFunction;
-import org.pih.analytics.flink.Event;
+import org.pih.analytics.flink.debezium.DebeziumEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class EventCountAggregator implements AggregateFunction<Event, Map<String, Integer>, Map<String, Integer>> {
+public class TableOperationCountAggregator implements AggregateFunction<DebeziumEvent, Map<String, Integer>, Map<String, Integer>> {
 
     @Override
     public Map<String, Integer> createAccumulator() {
@@ -14,7 +14,7 @@ public class EventCountAggregator implements AggregateFunction<Event, Map<String
     }
 
     @Override
-    public Map<String, Integer> add(Event event, Map<String, Integer> aggregator) {
+    public Map<String, Integer> add(DebeziumEvent event, Map<String, Integer> aggregator) {
         Integer existing = aggregator.get(getKey(event));
         aggregator.put(getKey(event), (existing == null ? 1 : existing + 1));
         return aggregator;
@@ -36,7 +36,7 @@ public class EventCountAggregator implements AggregateFunction<Event, Map<String
         return aggregator;
     }
 
-    public String getKey(Event event) {
-        return event.table + " - " + event.operation.name();
+    public String getKey(DebeziumEvent event) {
+        return event.getTable() + " - " + event.getOperation().name();
     }
 }

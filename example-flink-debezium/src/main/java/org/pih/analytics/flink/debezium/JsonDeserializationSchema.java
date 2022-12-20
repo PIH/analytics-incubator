@@ -1,4 +1,4 @@
-package org.pih.analytics.flink;
+package org.pih.analytics.flink.debezium;
 
 import com.ververica.cdc.debezium.DebeziumDeserializationSchema;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -13,7 +13,8 @@ import java.util.Map;
 
 /**
  * This is a copy of the JsonDebeziumDeserializationSchema, with the modification that it includes both the
- * key and the value in the payload.  We may not want this, but this demonstrates what can be done and how to customize
+ * key and the value in the payload.  We may not want this, but this demonstrates what can be done and how to
+ * customize the default behavior for any enhancements that may be needed.
  */
 public class JsonDeserializationSchema implements DebeziumDeserializationSchema<String> {
 

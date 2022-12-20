@@ -1,13 +1,13 @@
-package org.pih.analytics.flink;
+package org.pih.analytics.flink.util;
 
 import java.util.HashMap;
 
 /**
- * Represents a Debezium Change Event
+ * Represents a Row of data
  */
-public class RowValues extends HashMap<String, Object> {
+public class ObjectMap extends HashMap<String, Object> {
 
-    public RowValues() {
+    public ObjectMap() {
         super();
     }
 
