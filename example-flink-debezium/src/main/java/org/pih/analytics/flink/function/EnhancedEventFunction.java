@@ -43,7 +43,7 @@ public class EnhancedEventFunction extends KeyedProcessFunction<String, Debezium
         if (event.getTable().equals("patient_state")) {
             Integer patientProgramId = event.getValues().getInteger("patient_program_id");
             Object patientId = MysqlDataSource.lookupValue(connection, "patient_program", "patient_id", "patient_program_id", patientProgramId);
-            event.getValues().put("patient_id", patientId);
+            event.addValue("patient_id", patientId);
         }
     }
 
@@ -51,10 +51,10 @@ public class EnhancedEventFunction extends KeyedProcessFunction<String, Debezium
         Integer patientId = event.getValues().getInteger("patient_id");
         Integer personId = event.getValues().getInteger("person_id");
         if (patientId == null && personId != null) {
-            event.getValues().put("patient_id", personId);
+            event.addValue("patient_id", personId);
         }
         else if (patientId != null && personId == null) {
-            event.getValues().put("person_id", patientId);
+            event.addValue("person_id", patientId);
         }
     }
 }

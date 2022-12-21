@@ -75,6 +75,15 @@ public class DebeziumEvent implements Serializable {
         return operation == DebeziumOperation.DELETE ? getBefore() : getAfter();
     }
 
+    public void addValue(String key, Object value) {
+        if (before != null && !before.isEmpty()) {
+            before.put(key, value);
+        }
+        if (after != null && !after.isEmpty()) {
+            after.put(key, value);
+        }
+    }
+
     public String getUuid() {
         return getValues().getString("uuid");
     }
@@ -85,6 +94,6 @@ public class DebeziumEvent implements Serializable {
 
     @Override
     public String toString() {
-        return getChangeEvent().toString();
+        return getOperation() + ": " + getValues();
     }
 }
