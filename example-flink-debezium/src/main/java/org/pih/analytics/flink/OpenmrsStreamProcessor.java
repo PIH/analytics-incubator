@@ -2,14 +2,18 @@ package org.pih.analytics.flink;
 
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.pih.analytics.flink.config.MysqlDataSource;
 import org.pih.analytics.flink.debezium.JsonDeserializationSchema;
+import org.pih.analytics.flink.debezium.ChangeEventDeserializationSchema;
+import org.pih.analytics.flink.debezium.ChangeEvent;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 /**
  * Processes a stream of changes from an OpenMRS database
@@ -30,7 +34,6 @@ public class OpenmrsStreamProcessor {
     public OpenmrsStreamProcessor(String streamId) {
         this.streamId = streamId;
         env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.enableCheckpointing(600000); // Every 10 minutes
         env.setParallelism(1); // This sets the parallelism to 1 by default for anything executed
     }
 
@@ -64,10 +67,24 @@ public class OpenmrsStreamProcessor {
                 .debeziumProperties(config)
                 .build();
 
-        WatermarkStrategy<String> watermarkStrategy = WatermarkStrategy.noWatermarks();
+        WatermarkStrategy<String> watermarkStrategy = WatermarkStrategy.forMonotonousTimestamps();
         DataStreamSource<String> binlogStream = env.fromSource(mySqlSource, watermarkStrategy, streamId);
         binlogStream.setParallelism(1);
         return binlogStream;
+    }
+
+    public DataStreamSource<ChangeEvent> fromKafkaTopic(String topic, OffsetsInitializer startingOffsets, OffsetsInitializer endingOffsets) {
+        KafkaSource<ChangeEvent> kafkaSource = KafkaSource.<ChangeEvent>builder()
+                .setBootstrapServers("localhost:9092")
+                .setTopicPattern(Pattern.compile(topic))
+                .setGroupId(streamId)
+                .setStartingOffsets(startingOffsets)
+                .setBounded(endingOffsets)
+                .setDeserializer(new ChangeEventDeserializationSchema())
+                .build();
+
+        WatermarkStrategy<ChangeEvent> watermarkStrategy = WatermarkStrategy.noWatermarks();
+        return env.fromSource(kafkaSource, watermarkStrategy, streamId);
     }
 
     /**

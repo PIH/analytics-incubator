@@ -1,5 +1,5 @@
 {
-  "streamId": "humci-stream",
+  "streamId": "openmrs-stream",
   "mysqlSource": {
     "serverId": 100002,
     "host": "localhost",
@@ -9,9 +9,15 @@
     "password": "root"
   },
   "mysqlTables": [
-    "person", "person_name", "person_address", "person_attribute",
+    "person", "person_name", "person_address", "person_attribute", "relationship",
     "patient", "patient_identifier",
-    "encounter"
+    "patient_program", "patient_state",
+    "visit", "visit_attribute",
+    "encounter", "encounter_provider", "obs", "encounter_diagnosis",
+    "orders", "drug_order", "referral_order", "test_order", "order_group", "order_attribute",
+    "allergy", "allergy_reaction",
+    "conditions",
+    "appointmentscheduling_appointment"
   ],
   "debeziumProperties": {
   }

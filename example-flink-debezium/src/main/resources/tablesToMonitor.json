@@ -1,3 +1,49 @@
+[
+   {
+      "table": "person",
+      "keys": {
+         "person": "person_id"
+      },
+      "data": [
+         "gender", "birthdate", "birthdate_estimated", "birthtime",
+         "dead", "death_date", "deathdate_estimated", "cause_of_death", "cause_of_death_non_coded",
+         "uuid" ,"creator", "date_created", "voided"
+      ]
+   },
+   {
+      "table": "patient",
+      "keys": {
+         "patient": "patient_id",
+         "person": "patient_id"
+      },
+      "parent": "person",
+      "parent_key": "person_id",
+      "domains": {
+         "patient": "patient_id"
+      },
+      "data": [
+         "allergy_status",
+         "uuid" ,"creator", "date_created", "voided"
+      ]
+   },
+   {
+      "table": "person_name",
+      "keys": {
+         "patient": "per",
+         "person": "patient_id"
+      },
+      "parent": "person",
+      "parent_key": "person_id",
+      "domains": {
+         "patient": "patient_id"
+      },
+      "data": [
+         "allergy_status",
+         "uuid" ,"creator", "date_created", "voided"
+      ]
+   }
+]
+
 
 Keyed stream on person-related tables:
 

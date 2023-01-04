@@ -17,9 +17,7 @@ CREATE TABLE patient_index
     date_created TIMESTAMP,
     PRIMARY KEY (patient_id) NOT ENFORCED
 ) WITH (
-      'connector' = 'elasticsearch-7',
-      'hosts' = 'http://localhost:9200',
-      'index' = 'patient_index'
+    'connector' = 'print'
 )
 ;
 

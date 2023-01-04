@@ -16,7 +16,7 @@ CREATE TABLE person
     PRIMARY KEY (person_id) NOT ENFORCED
 ) WITH (
       'connector' = 'kafka',
-      'topic' = 'openmrs-humci.openmrs.person',
+      'topic' = 'humci-humci.openmrs.person',
       'properties.bootstrap.servers' = 'localhost:9092',
       'properties.group.id' = 'openmrs-person-table',
       'format' = 'debezium-json',

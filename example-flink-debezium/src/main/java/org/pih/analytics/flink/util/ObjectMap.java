@@ -1,5 +1,6 @@
 package org.pih.analytics.flink.util;
 
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -12,8 +13,11 @@ public class ObjectMap extends HashMap<String, Object> {
     }
 
     public Integer getInteger(String key) {
-        Object ret = get(key);
-        return ret == null ? null : (Integer)ret;
+        return (Integer) get(key);
+    }
+
+    public Date getDate(String key) {
+        return (Date) get(key);
     }
 
     public String getString(String key) {

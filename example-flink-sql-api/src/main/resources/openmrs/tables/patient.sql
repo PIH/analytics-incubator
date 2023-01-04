@@ -7,7 +7,7 @@ CREATE TABLE patient
     PRIMARY KEY (patient_id) NOT ENFORCED
 ) WITH (
       'connector' = 'kafka',
-      'topic' = 'openmrs-humci.openmrs.patient',
+      'topic' = 'humci-humci.openmrs.patient',
       'properties.bootstrap.servers' = 'localhost:9092',
       'properties.group.id' = 'openmrs-patient-table',
       'format' = 'debezium-json',

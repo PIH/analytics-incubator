@@ -13,7 +13,7 @@ CREATE TABLE person_address
     PRIMARY KEY (person_address_id) NOT ENFORCED
 ) WITH (
       'connector' = 'kafka',
-      'topic' = 'openmrs-humci.openmrs.person_address',
+      'topic' = 'humci-humci.openmrs.person_address',
       'properties.bootstrap.servers' = 'localhost:9092',
       'properties.group.id' = 'openmrs-person-address-table',
       'format' = 'debezium-json',

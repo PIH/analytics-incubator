@@ -5,11 +5,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.pih.analytics.flink.functions.DateFunction;
 import org.pih.analytics.flink.functions.PreferredFunction;
 import org.pih.analytics.flink.functions.TimestampFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class SqlApiJob {
 
-    private static final Logger log = LoggerFactory.getLogger(SqlApiJob.class);
+    private static final Logger log = LogManager.getLogger(SqlApiJob.class);
 
     public SqlApiJob() {}
 
@@ -32,6 +32,7 @@ public class SqlApiJob {
             String query = IOUtils.resourceToString(resource, StandardCharsets.UTF_8);
             for (String statement : query.split(";")) {
                 if (StringUtils.isNotBlank(statement)) {
+                    System.out.println("Executing: " + statement);
                     tEnv.executeSql(statement);
                 }
             }
@@ -71,9 +72,9 @@ public class SqlApiJob {
 
         executeSql(tEnv, "/zl/patient.sql");
 
-        executeSql(tEnv, "/elasticsearch/patient.sql");
+        //executeSql(tEnv, "/elasticsearch/patient.sql");
 
-        TableResult result = tEnv.executeSql("select count(*) as num_patients from patient");
+        TableResult result = tEnv.executeSql("select count(*) as num_patients from zl.patient");
         result.print();
     }
 }

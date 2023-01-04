@@ -25,7 +25,7 @@
 
 		<Logger name="org.pih" level="DEBUG" />
 
-		<Root level="WARN">
+		<Root level="ERROR">
 			<AppenderRef ref="CONSOLE" />
 		</Root>
 	</Loggers>
