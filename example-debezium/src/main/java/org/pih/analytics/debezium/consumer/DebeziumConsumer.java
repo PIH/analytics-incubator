@@ -1,13 +1,14 @@
 package org.pih.analytics.debezium.consumer;
 
 import io.debezium.engine.ChangeEvent;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.pih.analytics.debezium.DebeziumEvent;
 
 import java.util.function.Consumer;
 
-public abstract class DebeziumConsumer implements Consumer<ChangeEvent<String, String>> {
+public abstract class DebeziumConsumer implements Consumer<ChangeEvent<SourceRecord, SourceRecord>> {
 
     private static final Logger log = LogManager.getLogger(DebeziumConsumer.class);
 
@@ -16,7 +17,7 @@ public abstract class DebeziumConsumer implements Consumer<ChangeEvent<String, S
     long lastProcessTime = 0;
 
     @Override
-    public final void accept(ChangeEvent<String, String> changeEvent) {
+    public final void accept(ChangeEvent<SourceRecord, SourceRecord> changeEvent) {
         if (firstProcessTime == 0) {
             firstProcessTime = System.currentTimeMillis();
         }

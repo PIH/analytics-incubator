@@ -9,7 +9,7 @@
 
     <parent>
         <groupId>org.pih.analytics</groupId>
-        <artifactId>example-parent</artifactId>
+        <artifactId>analytics-incubator</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 

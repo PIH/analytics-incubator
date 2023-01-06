@@ -1,9 +1,10 @@
 package org.pih.analytics.debezium;
 
+import io.debezium.embedded.Connect;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine;
-import io.debezium.engine.format.Json;
 import org.apache.commons.io.FileUtils;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.pih.analytics.debezium.consumer.DebeziumConsumer;
@@ -32,7 +33,7 @@ public class DebeziumStream {
     private final File jobDataDir;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private DebeziumEngine<ChangeEvent<String, String>> engine;
+    private DebeziumEngine<ChangeEvent<SourceRecord, SourceRecord>> engine;
 
     /**
      * Instantiates a new stream with the given streamId, dataSource, tables, and dataDir
@@ -67,10 +68,6 @@ public class DebeziumStream {
         config.put("database.history", "io.debezium.relational.history.FileDatabaseHistory");
         config.put("database.history.file.filename", new File(jobDataDir, "schema_history.dat").getAbsolutePath());
         config.put("decimal.handling.mode", "double");
-        config.put("key.converter", "org.apache.kafka.connect.json.JsonConverter");
-        config.put("key.converter.schemas.enable", "false");
-        config.put("value.converter", "org.apache.kafka.connect.json.JsonConverter");
-        config.put("value.converter.schemas.enable", "false");
     }
 
     /**
@@ -120,7 +117,7 @@ public class DebeziumStream {
 
         debeziumConsumer.startup();
 
-        engine = DebeziumEngine.create(Json.class)
+        engine = DebeziumEngine.create(Connect.class)
                 .using(config)
                 .notifying(debeziumConsumer)
                 .build();

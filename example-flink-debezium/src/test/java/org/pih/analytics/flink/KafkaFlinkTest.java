@@ -42,7 +42,7 @@ public class KafkaFlinkTest {
     }
 
     @Test
-    public void shouldPrintStream() throws Exception {
+    public void shouldLogTableCountsAndDuration() throws Exception {
 
         FileUtils.deleteDirectory(new File("/tmp/flinktesting/rocksdb"));
 
@@ -56,8 +56,33 @@ public class KafkaFlinkTest {
         OffsetsInitializer toOffset = OffsetsInitializer.timestamp(timestamp);
 
         DataStream<ChangeEvent> eventStream = processor.fromKafkaTopic(getTopicPattern(), fromOffset, toOffset);
-        eventStream.addSink(new ProgressLogger());
+        ProgressLogger logger = new ProgressLogger(1000*10);
+        eventStream.addSink(logger);
 
+        //DataStream<Patient> patientStream = eventStream.flatMap(new EventToCompositeFlatMapper(name));
+        //patientStream.addSink(new TestSinkFunction());
+
+        processor.start();
+
+        System.out.println("Processing complete");
+        logger.log(System.currentTimeMillis());
+    }
+
+    @Test
+    public void shouldOutputCompositeObjects() throws Exception {
+
+        FileUtils.deleteDirectory(new File("/tmp/flinktesting/rocksdb"));
+
+        long timestamp = System.currentTimeMillis();
+
+        String name = getServerName() + "_" + getDatabaseName();
+
+        OpenmrsStreamProcessor processor = new OpenmrsStreamProcessor(name);
+
+        OffsetsInitializer fromOffset = OffsetsInitializer.earliest();
+        OffsetsInitializer toOffset = OffsetsInitializer.timestamp(timestamp);
+
+        DataStream<ChangeEvent> eventStream = processor.fromKafkaTopic(getTopicPattern(), fromOffset, toOffset);
         DataStream<Patient> patientStream = eventStream.flatMap(new EventToCompositeFlatMapper(name));
         patientStream.addSink(new TestSinkFunction());
 

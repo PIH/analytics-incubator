@@ -1,8 +1,8 @@
 package org.pih.analytics.debezium;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.debezium.engine.ChangeEvent;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.source.SourceRecord;
 
 import java.io.Serializable;
 
@@ -11,9 +11,7 @@ import java.io.Serializable;
  */
 public class DebeziumEvent implements Serializable {
 
-    private static final JsonMapper mapper = new JsonMapper();
-
-    private final ChangeEvent<String, String> changeEvent;
+    private final ChangeEvent<SourceRecord, SourceRecord> changeEvent;
     private final Long timestamp;
     private final DebeziumOperation operation;
     private final ObjectMap key;
@@ -21,24 +19,24 @@ public class DebeziumEvent implements Serializable {
     private final ObjectMap after;
     private final ObjectMap source;
 
-    public DebeziumEvent(ChangeEvent<String, String> changeEvent) {
+    public DebeziumEvent(ChangeEvent<SourceRecord, SourceRecord> changeEvent) {
         this.changeEvent = changeEvent;
         try {
-            JsonNode keyNode = mapper.readTree(changeEvent.key());
-            JsonNode valueNode = mapper.readTree(changeEvent.value());
-            timestamp = valueNode.get("ts_ms").longValue();
-            operation = DebeziumOperation.parse(valueNode.get("op").textValue());
-            key = mapper.treeToValue(keyNode, ObjectMap.class);
-            before = mapper.treeToValue(valueNode.get("before"), ObjectMap.class);
-            after = mapper.treeToValue(valueNode.get("after"), ObjectMap.class);
-            source = mapper.treeToValue(valueNode.get("source"), ObjectMap.class);
+            SourceRecord record = changeEvent.value();
+            key = new ObjectMap((Struct) record.key());
+            Struct valueStruct = (Struct) record.value();
+            timestamp = valueStruct.getInt64("ts_ms");
+            operation = DebeziumOperation.parse(valueStruct.getString("op"));
+            before = new ObjectMap(valueStruct.getStruct("before"));
+            after = new ObjectMap(valueStruct.getStruct("after"));
+            source = new ObjectMap(valueStruct.getStruct("source"));
         }
         catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public ChangeEvent<String, String> getChangeEvent() {
+    public ChangeEvent<SourceRecord, SourceRecord> getChangeEvent() {
         return changeEvent;
     }
 

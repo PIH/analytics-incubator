@@ -1,5 +1,8 @@
 package org.pih.analytics.debezium;
 
+import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Struct;
+
 import java.util.HashMap;
 
 /**
@@ -9,6 +12,15 @@ public class ObjectMap extends HashMap<String, Object> {
 
     public ObjectMap() {
         super();
+    }
+
+    public ObjectMap(Struct struct) {
+        this();
+        if (struct != null && struct.schema() != null) {
+            for (Field field : struct.schema().fields()) {
+                put(field.name(), struct.get(field));
+            }
+        }
     }
 
     public Integer getInteger(String key) {
