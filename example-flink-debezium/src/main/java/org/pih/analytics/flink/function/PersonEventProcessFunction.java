@@ -6,29 +6,31 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.pih.analytics.flink.debezium.ChangeEvent;
-import org.pih.analytics.flink.model.Person;
+import org.pih.analytics.flink.model.Patient;
 
 /**
  * This function aggregates person events into a Person object
  */
-public class PersonEventProcessFunction extends KeyedProcessFunction<Integer, ChangeEvent, Person> {
+public class PersonEventProcessFunction extends KeyedProcessFunction<Integer, ChangeEvent, Patient> {
 
-    private ValueState<Person> state;
+    private ValueState<Patient> state;
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        state = getRuntimeContext().getState(new ValueStateDescriptor<>("personState", Person.class));
+        state = getRuntimeContext().getState(new ValueStateDescriptor<>("personState", Patient.class));
     }
 
     @Override
     public void processElement(ChangeEvent event,
-                               KeyedProcessFunction<Integer, ChangeEvent, Person>.Context context,
-                               Collector<Person> collector) throws Exception {
+                               KeyedProcessFunction<Integer, ChangeEvent, Patient>.Context context,
+                               Collector<Patient> collector) throws Exception {
+    }
+        /*
 
-        Person personAggregate = state.value();
+        Patient personAggregate = state.value();
         if (personAggregate == null) {
-            personAggregate = new Person();
-            personAggregate.setPersonId(event.getPersonId());
+            personAggregate = new Patient();
+            personAggregate.setPatientId(event.getPatientId());
         }
 
         if (event.getTable().equals("person")) {
@@ -37,7 +39,7 @@ public class PersonEventProcessFunction extends KeyedProcessFunction<Integer, Ch
 
     }
 
-/*
+
     protected ObjectMap getPreferred(ObjectMap o1, ObjectMap o2) {
         if (o1.isDeleted()) {
             return event2;

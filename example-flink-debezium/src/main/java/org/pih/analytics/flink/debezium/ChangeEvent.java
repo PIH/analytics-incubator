@@ -138,6 +138,10 @@ public class ChangeEvent implements Serializable {
         return getValues().getInteger("encounter_id");
     }
 
+    public Integer getVisitId() {
+        return getValues().getInteger("visit_id");
+    }
+
     public Integer getPatientProgramId() {
         return getValues().getInteger("patient_program_id");
     }

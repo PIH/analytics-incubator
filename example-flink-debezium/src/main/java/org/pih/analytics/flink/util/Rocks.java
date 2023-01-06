@@ -32,7 +32,6 @@ public class Rocks {
     }
 
     public void put(Serializable key, Serializable value) {
-        System.out.println("Saving: " + key + "->" + value);
         try {
             db.put(SerializationUtils.serialize(key), SerializationUtils.serialize(value));
         }
@@ -42,17 +41,23 @@ public class Rocks {
     }
 
     public <T extends Serializable> T get(Serializable key) {
-        System.out.println("Getting: " + key);
         try {
-            byte[] bytes = db.get(SerializationUtils.serialize(key));
-            if (bytes != null) {
-                return SerializationUtils.deserialize(bytes);
+            if (key != null) {
+                byte[] bytes = db.get(SerializationUtils.serialize(key));
+                if (bytes != null) {
+                    return SerializationUtils.deserialize(bytes);
+                }
             }
             return null;
         }
         catch (Exception e) {
             throw new RuntimeException("Unable to get from rocks db", e);
         }
+    }
+
+    public <T extends Serializable> T getOrDefault(Serializable key, T defaultValue) {
+        T value = get(key);
+        return value == null ? defaultValue : value;
     }
 
     public void delete(Serializable key) {
@@ -65,6 +70,10 @@ public class Rocks {
     }
 
     public void close() {
-        db.close();
+        try {
+            db.close();
+        }
+        catch (Exception e) {
+        }
     }
 }

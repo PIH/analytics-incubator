@@ -34,6 +34,15 @@ public class Util {
 
     //***** JSON UTILITIES
 
+    public static String toJson(Object o) {
+        try {
+            return mapper.writeValueAsString(o);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static JsonNode readJsonString(String json) {
         try {
             return mapper.readTree(json);

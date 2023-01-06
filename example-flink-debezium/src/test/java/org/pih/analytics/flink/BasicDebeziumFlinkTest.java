@@ -2,19 +2,14 @@ package org.pih.analytics.flink;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.junit.jupiter.api.Test;
 import org.pih.analytics.flink.config.StreamConfig;
 import org.pih.analytics.flink.debezium.ChangeEvent;
-import org.pih.analytics.flink.function.filter.TableFilter;
-import org.pih.analytics.flink.function.join.PersonJoinFunction;
 import org.pih.analytics.flink.function.map.ChangeEventMapper;
-import org.pih.analytics.flink.function.map.EventToPersonMapper;
 import org.pih.analytics.flink.function.reduce.LatestEventReducer;
-import org.pih.analytics.flink.model.Person;
 import org.pih.analytics.flink.util.Util;
 
 public class BasicDebeziumFlinkTest {
@@ -69,44 +64,45 @@ public class BasicDebeziumFlinkTest {
          */
     }
 
+    /*
     @Test
     public void shouldMapToPersons() throws Exception {
         DataStream<ChangeEvent> eventStream = getEventStream();
 
-        SingleOutputStreamOperator<Person> personEvent = eventStream
+        SingleOutputStreamOperator<Patient> personEvent = eventStream
                 .filter(new TableFilter("person"))
                 .map(new EventToPersonMapper());
 
-        SingleOutputStreamOperator<Person> personNameEvent = eventStream
+        SingleOutputStreamOperator<Patient> personNameEvent = eventStream
                 .filter(new TableFilter("person_name"))
                 .map(new EventToPersonMapper());
 
         personEvent = personEvent
                 .join(personNameEvent)
-                .where(Person::getPersonId).equalTo(Person::getPersonId)
+                .where(Patient::getPersonId).equalTo(Patient::getPersonId)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(2)))
                 .apply(new PersonJoinFunction())
                 .map(p -> p);
 
 
-        SingleOutputStreamOperator<Person> personAddressEvent = eventStream
+        SingleOutputStreamOperator<Patient> personAddressEvent = eventStream
                 .filter(new TableFilter("person_address"))
                 .map(new EventToPersonMapper());
 
         personEvent = personEvent
                 .join(personAddressEvent)
-                .where(Person::getPersonId).equalTo(Person::getPersonId)
+                .where(Patient::getPersonId).equalTo(Patient::getPersonId)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(2)))
                 .apply(new PersonJoinFunction())
                 .map(p -> p);
 
-        SingleOutputStreamOperator<Person> personAttributeEvent = eventStream
+        SingleOutputStreamOperator<Patient> personAttributeEvent = eventStream
                 .filter(new TableFilter("person_attribute"))
                 .map(new EventToPersonMapper());
 
         personEvent = personEvent
                 .join(personAttributeEvent)
-                .where(Person::getPersonId).equalTo(Person::getPersonId)
+                .where(Patient::getPersonId).equalTo(Patient::getPersonId)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(2)))
                 .apply(new PersonJoinFunction())
                 .map(p -> p);
@@ -122,11 +118,11 @@ public class BasicDebeziumFlinkTest {
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(2)))
                 .apply(new PersonJoinFunction())
                 .print();
-*/
+
         processor.start();
     }
 
-
+*/
 /*
 
         // Run each stream of table events through a process function that can enhance them, for example add patient_id to events that lack it
